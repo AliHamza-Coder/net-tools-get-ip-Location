@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get User Location</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        button { padding: 10px 15px; font-size: 16px; cursor: pointer; }
+        #output { margin-top: 20px; display: flex; justify-content: center; gap: 20px; }
+        .location-box { border: 1px solid #ccc; padding: 15px; width: 250px; }
+    </style>
+</head>
+<body>
+    <h1>Get User Location</h1>
+    <button onclick="getUserLocation()">Get My Location</button>
+    <div id="output">
+        <div class="location-box" id="gps-location"><h3>🌍 GPS Location</h3><p>Waiting...</p></div>
+        <div class="location-box" id="ip-location"><h3>📍 IP-Based Location</h3><p>Waiting...</p></div>
+    </div>
+
+    <script>
+        async function getUserLocation() {
+            document.getElementById("gps-location").innerHTML = "<h3>🌍 GPS Location</h3><p>Fetching...</p>";
+            document.getElementById("ip-location").innerHTML = "<h3>📍 IP-Based Location</h3><p>Fetching...</p>";
+
+            // Fetch IP-based location immediately
+            getIPLocation();
+
+            // Try GPS-based location
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const latitude = position.coords.latitude;
+                        const longitude = position.coords.longitude;
+
+                        document.getElementById("gps-location").innerHTML = `<h3>🌍 GPS Location</h3>
+                            <p>Latitude: ${latitude}</p>
+                            <p>Longitude: ${longitude}</p>`;
+
+                        console.log(`GPS Location: Lat=${latitude}, Lng=${longitude}`);
+                    },
+                    (error) => {
+                        document.getElementById("gps-location").innerHTML = `<h3>🌍 GPS Location</h3><p>Denied or unavailable</p>`;
+                        console.warn("User denied location or unavailable.");
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                document.getElementById("gps-location").innerHTML = `<h3>🌍 GPS Location</h3><p>Not supported</p>`;
+            }
+        }
+
+        // Always fetch IP-based location
+        async function getIPLocation() {
+            try {
+                const response = await fetch("/get-ip-location");
+                const data = await response.json();
+
+                document.getElementById("ip-location").innerHTML = `<h3>📍 IP-Based Location</h3>
+                    <p>City: ${data.city || "Unknown"}</p>
+                    <p>Country: ${data.country || "Unknown"}</p>
+                    <p>Latitude: ${data.lat || "N/A"}</p>
+                    <p>Longitude: ${data.lon || "N/A"}</p>`;
+            } catch (error) {
+                document.getElementById("ip-location").innerHTML = `<h3>📍 IP-Based Location</h3><p>Could not fetch</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
